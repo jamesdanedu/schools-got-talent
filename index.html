@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SME's Got Talent</title>
+    
+    <!-- Prevent flash of wrong theme -->
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.classList.add(theme);
+        })();
+    </script>
+    
+    <!-- Google Fonts - Lora -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'lora': ['Lora', 'serif'],
+                    },
+                    colors: {
+                        'buzzer-red': '#dc2626',
+                        'buzzer-red-bright': '#ef4444',
+                        'nameplate-orange': '#f97316',
+                        'nameplate-orange-dark': '#ea580c',
+                        'gold': '#fbbf24',
+                        'gold-dark': '#d97706',
+                    },
+                    animation: {
+                        'buzzer-press': 'buzzerPress 0.4s ease-out',
+                        'buzzer-glow': 'buzzerGlow 1.5s ease-in-out infinite',
+                        'nameplate-glow': 'nameplateGlow 1s ease-out',
+                        'times-up': 'timesUp 0.5s ease-out',
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        buzzerPress: {
+                            '0%': { transform: 'scale(1)' },
+                            '20%': { transform: 'scale(1.15)' },
+                            '40%': { transform: 'scale(1.1)', filter: 'brightness(1.5)' },
+                            '100%': { transform: 'scale(1)', filter: 'brightness(1)' },
+                        },
+                        buzzerGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.8))' },
+                            '50%': { filter: 'drop-shadow(0 0 40px rgba(239, 68, 68, 1))' },
+                        },
+                        nameplateGlow: {
+                            '0%': { boxShadow: '0 0 0px rgba(249, 115, 22, 0)' },
+                            '50%': { boxShadow: '0 0 30px rgba(249, 115, 22, 1)' },
+                            '100%': { boxShadow: '0 0 15px rgba(249, 115, 22, 0.5)' },
+                        },
+                        timesUp: {
+                            '0%': { opacity: '0', transform: 'scale(0.8)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        * {
+            font-family: 'Lora', serif;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        
+        /* Nameplate skew effect */
+        .nameplate {
+            transform: perspective(500px) rotateX(5deg) skewX(-2deg);
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .nameplate-glow {
+            animation: nameplateGlow 1s ease-out forwards;
+        }
+        
+        /* X icon styling */
+        .buzzer-x {
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            transition: all 0.2s ease;
+        }
+        
+        .buzzer-x.active {
+            color: #dc2626 !important;
+            animation: buzzerPress 0.4s ease-out, buzzerGlow 1.5s ease-in-out 0.4s infinite;
+        }
+        
+        .buzzer-x:not(.active):hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+        }
+        
+        /* Times Up overlay */
+        .times-up-overlay {
+            background: rgba(185, 28, 28, 0.9);
+            backdrop-filter: blur(8px);
+        }
+        
+        /* Dark mode specific */
+        .dark .bg-stage {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+        
+        .light .bg-stage {
+            background: linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+        }
+        
+        /* Spotlight effect */
+        .spotlight {
+            background: radial-gradient(ellipse at center top, rgba(251, 191, 36, 0.1) 0%, transparent 50%);
+        }
+        
+        /* Theme toggle button */
+        .theme-toggle {
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .theme-toggle:hover {
+            transform: rotate(15deg) scale(1.1);
+        }
+        
+        /* Connection status indicator */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.connected {
+            background-color: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+        }
+        .status-dot.disconnected {
+            background-color: #ef4444;
+        }
+        
+        /* Contestant name styling */
+        .contestant-name {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.05em;
+        }
+        
+        /* Header styling */
+        .header-title {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Instructions panel */
+        .instructions {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-hidden">
+    <div id="app" class="min-h-screen bg-stage relative">
+        <!-- Spotlight effect overlay -->
+        <div class="spotlight absolute inset-0 pointer-events-none"></div>
+        
+        <!-- Header -->
+        <header class="relative z-10 flex items-center justify-between px-6 py-4">
+            <!-- Logo and Title -->
+            <div class="flex items-center gap-3">
+                <!-- School Logo -->
+                <img src="/public/smecrest.png" alt="School Crest" class="h-12 w-auto">
+                <h1 class="text-3xl font-bold header-title">SME's Got Talent</h1>
+            </div>
+            
+            <!-- Controls -->
+            <div class="flex items-center gap-4">
+                <!-- Microbit Connection -->
+                <button id="connectBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 text-white transition-colors text-sm">
+                    <span class="status-dot disconnected" id="statusDot"></span>
+                    <span id="connectText">Connect</span>
+                </button>
+                
+                <!-- Theme Toggle -->
+                <button id="themeToggle" class="theme-toggle p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-yellow-300">
+                    <!-- Sun icon (light mode) -->
+                    <svg id="sunIcon" class="w-6 h-6 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                    </svg>
+                    <!-- Moon icon (dark mode) -->
+                    <svg id="moonIcon" class="w-6 h-6 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="relative z-10 flex flex-col items-center justify-center px-4" style="height: calc(100vh - 140px);">
+            <!-- Contestant Name -->
+            <div class="mb-8 text-center">
+                <p class="text-sm uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Now Performing</p>
+                <h2 id="contestantName" class="contestant-name text-4xl md:text-5xl font-bold text-gray-800 dark:text-white">
+                    Loading...
+                </h2>
+            </div>
+            
+            <!-- Buzzers Container -->
+            <div class="flex justify-center items-end gap-4 md:gap-8 w-[90%] max-w-6xl">
+                <!-- Buzzer 1 -->
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="buzzer-container cursor-pointer" data-buzzer="0" onclick="activateBuzzer(0)">
+                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="0">
+                        <span class="text-white font-semibold text-lg md:text-xl" id="judge0">Judge 1</span>
+                    </div>
+                </div>
+                
+                <!-- Buzzer 2 -->
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="buzzer-container cursor-pointer" data-buzzer="1" onclick="activateBuzzer(1)">
+                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="1">
+                        <span class="text-white font-semibold text-lg md:text-xl" id="judge1">Judge 2</span>
+                    </div>
+                </div>
+                
+                <!-- Buzzer 3 -->
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="buzzer-container cursor-pointer" data-buzzer="2" onclick="activateBuzzer(2)">
+                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="2">
+                        <span class="text-white font-semibold text-lg md:text-xl" id="judge2">Judge 3</span>
+                    </div>
+                </div>
+                
+                <!-- Buzzer 4 -->
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="buzzer-container cursor-pointer" data-buzzer="3" onclick="activateBuzzer(3)">
+                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="3">
+                        <span class="text-white font-semibold text-lg md:text-xl" id="judge3">Judge 4</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Instructions Footer -->
+        <footer class="absolute bottom-4 left-0 right-0 z-10">
+            <div class="instructions text-center text-gray-500 dark:text-gray-400">
+                <p>Press <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">1</kbd> <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">2</kbd> <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">3</kbd> <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">4</kbd> for buzzers • <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">Space</kbd> for next contestant</p>
+            </div>
+        </footer>
+        
+        <!-- Time's Up Overlay -->
+        <div id="timesUpOverlay" class="times-up-overlay fixed inset-0 z-50 hidden flex-col items-center justify-center">
+            <h1 class="text-6xl md:text-8xl font-bold text-white animate-pulse-slow" style="text-shadow: 0 0 40px rgba(255,255,255,0.5);">
+                TIME'S UP!
+            </h1>
+            <p class="mt-4 text-xl text-white/80">Press SPACE for next contestant</p>
+        </div>
+    </div>
+    
+    <!-- Audio Elements -->
+    <audio id="buzzerSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2Xin56goqRjYB0aW14hI+VlI2EfHp/hoyOiYJ5c3V7gYiLi4iEgH19gIOGhoWDgH59fX+BgoODgoF/fn5+f4CBgYGAgH9+fn5/gICAgIB/f39/f4CAgICAgH9/f4B/gICAgIB/f39/f39/f3+Af4B/f39/f39/f39/f39/f39/f39/f39/f39/gH9/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f4B/gH+Af4B/gH+Af4CAgICAgICAgYGBgYKCgoKCg4ODg4SEhISFhYWFhoaGhoeHh4eIiIiIiYmJiYqKioqLi4uLjIyMjI2NjY6Ojo6Pj4+PkJCQkJGRkZGSkpKSk5OTk5SUlJSVlZWVlpaWlpeXl5eYmJiYmZmZmZqampqbm5ubnJycnJ2dnZ2enp6en5+fn6CgoKChoaGhoqKioqOjo6OkpKSkpaWlpaampqanp6enqKioqKmpqamqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampaWlpaWlpaWlpaSkpKSkpKSkpKOjo6Ojo6OjoqKioqKioqKhoaGhoaGhoaCgoKCgoKCfn5+fn5+fn56enp6enp6dnZ2dnZ2dnZycnJycnJycm5ubm5ubm5uampqampqampmZmZmZmZmZmJiYmJiYmJiXl5eXl5eXl5aWlpaWlpaWlZWVlZWVlZWUlJSUlJSUlJOTk5OTk5OTkpKSkpKSkpKRkZGRkZGRkZCQkJCQkJCQj4+Pj4+Pj4+Ojo6Ojo6Ojo2NjY2NjY2NjIyMjIyMjIyLi4uLi4uLi4qKioqKioqKiYmJiYmJiYmIiIiIiIiIiIeHh4eHh4eHhoaGhoaGhoaFhYWFhYWFhYSEhISEhISEg4ODg4ODg4OCgoKCgoKCgoGBgYGBgYGBgICAgICAgIB/f39/f39/f35+fn5+fn5+fX19fX19fX18fHx8fHx8fHt7e3t7e3t7enp6enp6enp5eXl5eXl5eXh4eHh4eHh4d3d3d3d3d3d2dnZ2dnZ2dnV1dXV1dXV1dHR0dHR0dHRzc3Nzc3Nzc3JycnJycnJycXFxcXFxcXFwcHBwcHBwcG9vb29vb29vbm5ubm5ubm5tbW1tbW1tbWxsbGxsbGxsa2tra2tra2tqampqampqamlpaWlpaWlpaGhoaGhoaGhnZ2dnZ2dnZ2ZmZmZmZmZmZWVlZWVlZWVkZGRkZGRkZGNjY2NjY2NjYmJiYmJiYmJhYWFhYWFhYWBgYGBgYGBgX19fX19fX19eXl5eXl5eXl1dXV1dXV1dXFxcXFxcXFxbW1tbW1tbW1paWlpaWlpaWVlZWVlZWVlYWFhYWFhYWFdXV1dXV1dXVlZWVlZWVlZVVVVVVVVVVVRUVFRUVFRUU1NTU1NTU1NSUlJSUlJSUlFRUVFRUVFRUFBQUFBQUFBPT09PT09PT05OTk5OTk5OTU1NTU1NTU1MTExMTExMTEtLS0tLS0tLSkpKSkpKSkpJSUlJSUlJSUhISEhISEhIR0dHR0dHR0dGRkZGRkZGRkVFRUVFRUVFREREREREREQ=" type="audio/wav">
+    </audio>
+    
+    <audio id="airHornSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRr4IAABXQVZFZm10IBAAAAABAAEAIlYAAHCsAAABAAgAZGF0YZoIAACA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f/9//3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=" type="audio/wav">
+    </audio>
+    
+    <script>
+        // ==================== State ====================
+        let contestants = [];
+        let judges = ['Judge 1', 'Judge 2', 'Judge 3', 'Judge 4'];
+        let currentContestantIndex = 0;
+        let buzzerStates = [false, false, false, false];
+        let serialPort = null;
+        let reader = null;
+        let isConnected = false;
+        
+        // ==================== Audio Context for Better Sound ====================
+        let audioContext = null;
+        
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playBuzzerSound() {
+            initAudioContext();
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        function playAirHornSound() {
+            initAudioContext();
+            
+            // Create a more dramatic air horn sound
+            const oscillator1 = audioContext.createOscillator();
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator1.frequency.setValueAtTime(440, audioContext.currentTime);
+            oscillator2.frequency.setValueAtTime(554.37, audioContext.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.6, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+            
+            oscillator1.type = 'sawtooth';
+            oscillator2.type = 'sawtooth';
+            
+            oscillator1.start(audioContext.currentTime);
+            oscillator2.start(audioContext.currentTime);
+            oscillator1.stop(audioContext.currentTime + 1.5);
+            oscillator2.stop(audioContext.currentTime + 1.5);
+        }
+        
+        // ==================== Theme Management ====================
+        function initTheme() {
+            const themeToggle = document.getElementById('themeToggle');
+            
+            themeToggle.addEventListener('click', () => {
+                const html = document.documentElement;
+                const isDark = html.classList.contains('dark');
+                
+                if (isDark) {
+                    html.classList.remove('dark');
+                    html.classList.add('light');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.classList.remove('light');
+                    html.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        }
+        
+        // ==================== CSV Loading ====================
+        async function loadCSV(filename) {
+            try {
+                const response = await fetch(`/public/${filename}`);
+                if (!response.ok) throw new Error('File not found');
+                const text = await response.text();
+                return text.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0);
+            } catch (error) {
+                console.warn(`Could not load ${filename}:`, error);
+                return null;
+            }
+        }
+        
+        async function loadContestants() {
+            const data = await loadCSV('contestants.csv');
+            if (data && data.length > 0) {
+                // Skip header if present
+                contestants = data[0].toLowerCase().includes('name') ? data.slice(1) : data;
+            } else {
+                contestants = ['Contestant 1', 'Contestant 2', 'Contestant 3'];
+            }
+            updateContestantDisplay();
+        }
+        
+        async function loadJudges() {
+            const data = await loadCSV('judges.csv');
+            if (data && data.length > 0) {
+                // Skip header if present
+                const judgeData = data[0].toLowerCase().includes('name') ? data.slice(1) : data;
+                judges = judgeData.slice(0, 4);
+                // Pad with defaults if needed
+                while (judges.length < 4) {
+                    judges.push(`Judge ${judges.length + 1}`);
+                }
+            }
+            updateJudgeDisplays();
+        }
+        
+        function updateContestantDisplay() {
+            const nameEl = document.getElementById('contestantName');
+            if (contestants.length > 0) {
+                nameEl.textContent = contestants[currentContestantIndex] || 'No contestants';
+            } else {
+                nameEl.textContent = 'No contestants loaded';
+            }
+        }
+        
+        function updateJudgeDisplays() {
+            judges.forEach((judge, index) => {
+                const el = document.getElementById(`judge${index}`);
+                if (el) el.textContent = judge;
+            });
+        }
+        
+        // ==================== Buzzer Logic ====================
+        function activateBuzzer(index) {
+            if (buzzerStates[index]) return; // Already activated
+            
+            buzzerStates[index] = true;
+            
+            // Get elements
+            const buzzerContainer = document.querySelector(`[data-buzzer="${index}"]`);
+            const buzzerX = buzzerContainer.querySelector('.buzzer-x');
+            const nameplate = document.querySelector(`[data-nameplate="${index}"]`);
+            
+            // Activate buzzer X - remove Tailwind color classes and add active
+            buzzerX.classList.remove('text-gray-400', 'dark:text-gray-500');
+            buzzerX.classList.add('active');
+            
+            // Trigger nameplate glow
+            nameplate.classList.remove('nameplate-glow');
+            void nameplate.offsetWidth; // Force reflow
+            nameplate.classList.add('nameplate-glow');
+            
+            // Play buzzer sound
+            playBuzzerSound();
+            
+            // Check if all buzzers are activated
+            checkAllBuzzersActivated();
+        }
+        
+        function resetBuzzers() {
+            buzzerStates = [false, false, false, false];
+            
+            document.querySelectorAll('.buzzer-x').forEach(buzzer => {
+                buzzer.classList.remove('active');
+                // Restore Tailwind color classes
+                buzzer.classList.add('text-gray-400', 'dark:text-gray-500');
+            });
+            
+            document.querySelectorAll('[data-nameplate]').forEach(nameplate => {
+                nameplate.classList.remove('nameplate-glow');
+            });
+            
+            // Hide times up overlay
+            const overlay = document.getElementById('timesUpOverlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+        
+        function checkAllBuzzersActivated() {
+            if (buzzerStates.every(state => state)) {
+                showTimesUp();
+            }
+        }
+        
+        function showTimesUp() {
+            const overlay = document.getElementById('timesUpOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            overlay.style.animation = 'timesUp 0.5s ease-out';
+            
+            playAirHornSound();
+        }
+        
+        function nextContestant() {
+            resetBuzzers();
+            currentContestantIndex++;
+            if (currentContestantIndex >= contestants.length) {
+                currentContestantIndex = 0;
+            }
+            updateContestantDisplay();
+        }
+        
+        // ==================== Keyboard Input ====================
+        function initKeyboardControls() {
+            document.addEventListener('keydown', (e) => {
+                // Buzzer keys 1-4
+                if (e.key >= '1' && e.key <= '4') {
+                    const index = parseInt(e.key) - 1;
+                    activateBuzzer(index);
+                }
+                
+                // Space for next contestant
+                if (e.key === ' ' || e.code === 'Space') {
+                    e.preventDefault();
+                    nextContestant();
+                }
+            });
+        }
+        
+        // ==================== Web Serial API (Microbit) ====================
+        async function connectMicrobit() {
+            if (!('serial' in navigator)) {
+                alert('Web Serial API not supported in this browser. Please use Chrome or Edge.');
+                return;
+            }
+            
+            try {
+                serialPort = await navigator.serial.requestPort();
+                await serialPort.open({ baudRate: 115200 });
+                
+                isConnected = true;
+                updateConnectionStatus();
+                
+                readSerialData();
+            } catch (error) {
+                console.error('Failed to connect:', error);
+                isConnected = false;
+                updateConnectionStatus();
+            }
+        }
+        
+        async function disconnectMicrobit() {
+            if (reader) {
+                await reader.cancel();
+                reader = null;
+            }
+            if (serialPort) {
+                await serialPort.close();
+                serialPort = null;
+            }
+            isConnected = false;
+            updateConnectionStatus();
+        }
+        
+        async function readSerialData() {
+            const textDecoder = new TextDecoderStream();
+            const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
+            reader = textDecoder.readable.getReader();
+            
+            let buffer = '';
+            
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += value;
+                    
+                    // Process complete messages (assuming newline-delimited)
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // Keep incomplete line in buffer
+                    
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        // Expect format: "BUZZER:1" through "BUZZER:4"
+                        if (trimmed.startsWith('BUZZER:')) {
+                            const buzzerNum = parseInt(trimmed.split(':')[1]);
+                            if (buzzerNum >= 1 && buzzerNum <= 4) {
+                                activateBuzzer(buzzerNum - 1);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Serial read error:', error);
+            }
+        }
+        
+        function updateConnectionStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const connectText = document.getElementById('connectText');
+            
+            if (isConnected) {
+                statusDot.classList.remove('disconnected');
+                statusDot.classList.add('connected');
+                connectText.textContent = 'Disconnect';
+            } else {
+                statusDot.classList.remove('connected');
+                statusDot.classList.add('disconnected');
+                connectText.textContent = 'Connect';
+            }
+        }
+        
+        function initSerialConnection() {
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.addEventListener('click', () => {
+                if (isConnected) {
+                    disconnectMicrobit();
+                } else {
+                    connectMicrobit();
+                }
+            });
+        }
+        
+        // ==================== Initialization ====================
+        async function init() {
+            initTheme();
+            initKeyboardControls();
+            initSerialConnection();
+            
+            await loadJudges();
+            await loadContestants();
+        }
+        
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

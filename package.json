@@ -1,0 +1,17 @@
+{
+  "name": "smes-got-talent",
+  "version": "1.0.0",
+  "description": "A Britain's Got Talent style judges' feedback screen",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "talent-show",
+    "buzzer",
+    "judges",
+    "feedback"
+  ],
+  "author": "",
+  "license": "MIT"
+}
