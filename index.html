@@ -102,18 +102,28 @@
             animation: nameplateGlow 1s ease-out forwards;
         }
         
-        /* X icon styling */
+        /* X icon styling - inactive state */
         .buzzer-x {
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
             transition: all 0.2s ease;
         }
         
+        /* Inactive buzzer colors - using CSS variables for theme support */
+        .buzzer-x.inactive {
+            color: #9ca3af; /* gray-400 */
+        }
+        
+        .dark .buzzer-x.inactive {
+            color: #6b7280; /* gray-500 */
+        }
+        
+        /* Active buzzer - red with glow */
         .buzzer-x.active {
             color: #dc2626 !important;
             animation: buzzerPress 0.4s ease-out, buzzerGlow 1.5s ease-in-out 0.4s infinite;
         }
         
-        .buzzer-x:not(.active):hover {
+        .buzzer-x.inactive:hover {
             transform: scale(1.05);
             filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
         }
@@ -124,12 +134,14 @@
             backdrop-filter: blur(8px);
         }
         
-        /* Dark mode specific */
+        /* Dark mode stage background */
         .dark .bg-stage {
             background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
         }
         
-        .light .bg-stage {
+        /* Light mode stage background */
+        .light .bg-stage,
+        :not(.dark) .bg-stage {
             background: linear-gradient(180deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
         }
         
@@ -179,6 +191,13 @@
             font-size: 0.75rem;
             opacity: 0.7;
         }
+        
+        /* Dynamic buzzer container sizing */
+        .buzzer-wrapper {
+            flex: 1;
+            min-width: 120px;
+            max-width: 250px;
+        }
     </style>
 </head>
 <body class="min-h-screen overflow-hidden">
@@ -227,62 +246,16 @@
                 </h2>
             </div>
             
-            <!-- Buzzers Container -->
-            <div class="flex justify-center items-end gap-4 md:gap-8 w-[90%] max-w-6xl">
-                <!-- Buzzer 1 -->
-                <div class="flex-1 flex flex-col items-center">
-                    <div class="buzzer-container cursor-pointer" data-buzzer="0" onclick="activateBuzzer(0)">
-                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
-                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="0">
-                        <span class="text-white font-semibold text-lg md:text-xl" id="judge0">Judge 1</span>
-                    </div>
-                </div>
-                
-                <!-- Buzzer 2 -->
-                <div class="flex-1 flex flex-col items-center">
-                    <div class="buzzer-container cursor-pointer" data-buzzer="1" onclick="activateBuzzer(1)">
-                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
-                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="1">
-                        <span class="text-white font-semibold text-lg md:text-xl" id="judge1">Judge 2</span>
-                    </div>
-                </div>
-                
-                <!-- Buzzer 3 -->
-                <div class="flex-1 flex flex-col items-center">
-                    <div class="buzzer-container cursor-pointer" data-buzzer="2" onclick="activateBuzzer(2)">
-                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
-                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="2">
-                        <span class="text-white font-semibold text-lg md:text-xl" id="judge2">Judge 3</span>
-                    </div>
-                </div>
-                
-                <!-- Buzzer 4 -->
-                <div class="flex-1 flex flex-col items-center">
-                    <div class="buzzer-container cursor-pointer" data-buzzer="3" onclick="activateBuzzer(3)">
-                        <svg class="buzzer-x w-full h-auto text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
-                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="3">
-                        <span class="text-white font-semibold text-lg md:text-xl" id="judge3">Judge 4</span>
-                    </div>
-                </div>
+            <!-- Buzzers Container - Dynamically populated -->
+            <div id="buzzersContainer" class="flex justify-center items-end gap-4 md:gap-8 w-[90%] max-w-6xl">
+                <!-- Buzzers will be generated dynamically based on judges.csv -->
             </div>
         </main>
         
         <!-- Instructions Footer -->
         <footer class="absolute bottom-4 left-0 right-0 z-10">
             <div class="instructions text-center text-gray-500 dark:text-gray-400">
-                <p>Press <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">1</kbd> <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">2</kbd> <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">3</kbd> <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">4</kbd> for buzzers • <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">Space</kbd> for next contestant</p>
+                <p id="instructionsText">Press number keys for buzzers • <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">Space</kbd> for next contestant</p>
             </div>
         </footer>
         
@@ -295,21 +268,13 @@
         </div>
     </div>
     
-    <!-- Audio Elements -->
-    <audio id="buzzerSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2Xin56goqRjYB0aW14hI+VlI2EfHp/hoyOiYJ5c3V7gYiLi4iEgH19gIOGhoWDgH59fX+BgoODgoF/fn5+f4CBgYGAgH9+fn5/gICAgIB/f39/f4CAgICAgH9/f4B/gICAgIB/f39/f39/f3+Af4B/f39/f39/f39/f39/f39/f39/f39/f39/gH9/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f4B/gH+Af4B/gH+Af4CAgICAgICAgYGBgYKCgoKCg4ODg4SEhISFhYWFhoaGhoeHh4eIiIiIiYmJiYqKioqLi4uLjIyMjI2NjY6Ojo6Pj4+PkJCQkJGRkZGSkpKSk5OTk5SUlJSVlZWVlpaWlpeXl5eYmJiYmZmZmZqampqbm5ubnJycnJ2dnZ2enp6en5+fn6CgoKChoaGhoqKioqOjo6OkpKSkpaWlpaampqanp6enqKioqKmpqamqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampqampaWlpaWlpaWlpaSkpKSkpKSkpKOjo6Ojo6OjoqKioqKioqKhoaGhoaGhoaCgoKCgoKCfn5+fn5+fn56enp6enp6dnZ2dnZ2dnZycnJycnJycm5ubm5ubm5uampqampqampmZmZmZmZmZmJiYmJiYmJiXl5eXl5eXl5aWlpaWlpaWlZWVlZWVlZWUlJSUlJSUlJOTk5OTk5OTkpKSkpKSkpKRkZGRkZGRkZCQkJCQkJCQj4+Pj4+Pj4+Ojo6Ojo6Ojo2NjY2NjY2NjIyMjIyMjIyLi4uLi4uLi4qKioqKioqKiYmJiYmJiYmIiIiIiIiIiIeHh4eHh4eHhoaGhoaGhoaFhYWFhYWFhYSEhISEhISEg4ODg4ODg4OCgoKCgoKCgoGBgYGBgYGBgICAgICAgIB/f39/f39/f35+fn5+fn5+fX19fX19fX18fHx8fHx8fHt7e3t7e3t7enp6enp6enp5eXl5eXl5eXh4eHh4eHh4d3d3d3d3d3d2dnZ2dnZ2dnV1dXV1dXV1dHR0dHR0dHRzc3Nzc3Nzc3JycnJycnJycXFxcXFxcXFwcHBwcHBwcG9vb29vb29vbm5ubm5ubm5tbW1tbW1tbWxsbGxsbGxsa2tra2tra2tqampqampqamlpaWlpaWlpaGhoaGhoaGhnZ2dnZ2dnZ2ZmZmZmZmZmZWVlZWVlZWVkZGRkZGRkZGNjY2NjY2NjYmJiYmJiYmJhYWFhYWFhYWBgYGBgYGBgX19fX19fX19eXl5eXl5eXl1dXV1dXV1dXFxcXFxcXFxbW1tbW1tbW1paWlpaWlpaWVlZWVlZWVlYWFhYWFhYWFdXV1dXV1dXVlZWVlZWVlZVVVVVVVVVVVRUVFRUVFRUU1NTU1NTU1NSUlJSUlJSUlFRUVFRUVFRUFBQUFBQUFBPT09PT09PT05OTk5OTk5OTU1NTU1NTU1MTExMTExMTEtLS0tLS0tLSkpKSkpKSkpJSUlJSUlJSUhISEhISEhIR0dHR0dHR0dGRkZGRkZGRkVFRUVFRUVFREREREREREQ=" type="audio/wav">
-    </audio>
-    
-    <audio id="airHornSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRr4IAABXQVZFZm10IBAAAAABAAEAIlYAAHCsAAABAAgAZGF0YZoIAACA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f/9//3//f/9//38AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f/9//3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f/9//3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f/9//3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/3//f4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=" type="audio/wav">
-    </audio>
-    
     <script>
         // ==================== State ====================
         let contestants = [];
-        let judges = ['Judge 1', 'Judge 2', 'Judge 3', 'Judge 4'];
+        let judges = [];
+        let judgeCount = 0;
         let currentContestantIndex = 0;
-        let buzzerStates = [false, false, false, false];
+        let buzzerStates = [];
         let serialPort = null;
         let reader = null;
         let isConnected = false;
@@ -421,13 +386,52 @@
             if (data && data.length > 0) {
                 // Skip header if present
                 const judgeData = data[0].toLowerCase().includes('name') ? data.slice(1) : data;
-                judges = judgeData.slice(0, 4);
-                // Pad with defaults if needed
-                while (judges.length < 4) {
-                    judges.push(`Judge ${judges.length + 1}`);
-                }
+                judges = judgeData.filter(name => name.trim().length > 0);
             }
-            updateJudgeDisplays();
+            
+            // Fallback to 4 default judges if none loaded
+            if (judges.length === 0) {
+                judges = ['Judge 1', 'Judge 2', 'Judge 3', 'Judge 4'];
+            }
+            
+            judgeCount = judges.length;
+            buzzerStates = new Array(judgeCount).fill(false);
+            
+            // Generate the buzzer UI dynamically
+            generateBuzzerUI();
+            updateInstructions();
+        }
+        
+        function generateBuzzerUI() {
+            const container = document.getElementById('buzzersContainer');
+            container.innerHTML = '';
+            
+            judges.forEach((judgeName, index) => {
+                const buzzerWrapper = document.createElement('div');
+                buzzerWrapper.className = 'buzzer-wrapper flex flex-col items-center';
+                
+                buzzerWrapper.innerHTML = `
+                    <div class="buzzer-container cursor-pointer" data-buzzer="${index}" onclick="activateBuzzer(${index})">
+                        <svg class="buzzer-x inactive w-full h-auto" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="${index}">
+                        <span class="text-white font-semibold text-lg md:text-xl">${judgeName}</span>
+                    </div>
+                `;
+                
+                container.appendChild(buzzerWrapper);
+            });
+        }
+        
+        function updateInstructions() {
+            const instructionsText = document.getElementById('instructionsText');
+            const keyHints = judges.map((_, i) => 
+                `<kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">${i + 1}</kbd>`
+            ).join(' ');
+            
+            instructionsText.innerHTML = `Press ${keyHints} for buzzers • <kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">Space</kbd> for next contestant`;
         }
         
         function updateContestantDisplay() {
@@ -439,15 +443,9 @@
             }
         }
         
-        function updateJudgeDisplays() {
-            judges.forEach((judge, index) => {
-                const el = document.getElementById(`judge${index}`);
-                if (el) el.textContent = judge;
-            });
-        }
-        
         // ==================== Buzzer Logic ====================
         function activateBuzzer(index) {
+            if (index < 0 || index >= judgeCount) return;
             if (buzzerStates[index]) return; // Already activated
             
             buzzerStates[index] = true;
@@ -457,8 +455,8 @@
             const buzzerX = buzzerContainer.querySelector('.buzzer-x');
             const nameplate = document.querySelector(`[data-nameplate="${index}"]`);
             
-            // Activate buzzer X - remove Tailwind color classes and add active
-            buzzerX.classList.remove('text-gray-400', 'dark:text-gray-500');
+            // Activate buzzer X - switch from inactive to active class
+            buzzerX.classList.remove('inactive');
             buzzerX.classList.add('active');
             
             // Trigger nameplate glow
@@ -474,12 +472,11 @@
         }
         
         function resetBuzzers() {
-            buzzerStates = [false, false, false, false];
+            buzzerStates = new Array(judgeCount).fill(false);
             
             document.querySelectorAll('.buzzer-x').forEach(buzzer => {
                 buzzer.classList.remove('active');
-                // Restore Tailwind color classes
-                buzzer.classList.add('text-gray-400', 'dark:text-gray-500');
+                buzzer.classList.add('inactive');
             });
             
             document.querySelectorAll('[data-nameplate]').forEach(nameplate => {
@@ -519,10 +516,10 @@
         // ==================== Keyboard Input ====================
         function initKeyboardControls() {
             document.addEventListener('keydown', (e) => {
-                // Buzzer keys 1-4
-                if (e.key >= '1' && e.key <= '4') {
-                    const index = parseInt(e.key) - 1;
-                    activateBuzzer(index);
+                // Buzzer keys - dynamic based on judge count (1-9 supported)
+                const keyNum = parseInt(e.key);
+                if (!isNaN(keyNum) && keyNum >= 1 && keyNum <= judgeCount && keyNum <= 9) {
+                    activateBuzzer(keyNum - 1);
                 }
                 
                 // Space for next contestant
@@ -588,10 +585,10 @@
                     
                     for (const line of lines) {
                         const trimmed = line.trim();
-                        // Expect format: "BUZZER:1" through "BUZZER:4"
+                        // Expect format: "BUZZER:1" through "BUZZER:N"
                         if (trimmed.startsWith('BUZZER:')) {
                             const buzzerNum = parseInt(trimmed.split(':')[1]);
-                            if (buzzerNum >= 1 && buzzerNum <= 4) {
+                            if (buzzerNum >= 1 && buzzerNum <= judgeCount) {
                                 activateBuzzer(buzzerNum - 1);
                             }
                         }
@@ -634,6 +631,7 @@
             initKeyboardControls();
             initSerialConnection();
             
+            // Load judges first (this generates the UI)
             await loadJudges();
             await loadContestants();
         }

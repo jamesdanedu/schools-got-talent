@@ -75,9 +75,11 @@ server.listen(PORT, () => {
 ║   http://localhost:${PORT}                                   ║
 ║                                                           ║
 ║   Controls:                                               ║
-║   • Press 1, 2, 3, 4 to activate buzzers                 ║
+║   • Press number keys (1-9) to activate buzzers           ║
 ║   • Press SPACE to advance to next contestant             ║
 ║   • Click 'Connect Microbit' for serial input             ║
+║                                                           ║
+║   Judge count is dynamic - edit judges.csv to change!     ║
 ║                                                           ║
 ║   Press Ctrl+C to stop the server                         ║
 ║                                                           ║
