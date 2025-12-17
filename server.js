@@ -75,11 +75,12 @@ server.listen(PORT, () => {
 ║   http://localhost:${PORT}                                   ║
 ║                                                           ║
 ║   Controls:                                               ║
-║   • Press number keys (1-9) to activate buzzers           ║
+║   • Press 1-9 to activate buzzers (based on judges)       ║
 ║   • Press SPACE to advance to next contestant             ║
-║   • Click 'Connect Microbit' for serial input             ║
+║   • Press T to cycle through themes                       ║
+║   • Click 'Connect' for Microbit serial input             ║
 ║                                                           ║
-║   Judge count is dynamic - edit judges.csv to change!     ║
+║   Themes: Stage Dark | Pure Black | Neon | Warm Spotlight ║
 ║                                                           ║
 ║   Press Ctrl+C to stop the server                         ║
 ║                                                           ║
