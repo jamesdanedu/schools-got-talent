@@ -22,29 +22,23 @@ const MIME_TYPES = {
 const server = http.createServer((req, res) => {
     console.log(`${req.method} ${req.url}`);
     
-    // Parse URL and remove query strings
     let urlPath = req.url.split('?')[0];
     
-    // Default to index.html for root
     if (urlPath === '/') {
         urlPath = '/index.html';
     }
     
-    // Construct file path
     let filePath = path.join(__dirname, urlPath);
     
-    // Security: prevent directory traversal
     if (!filePath.startsWith(__dirname)) {
         res.writeHead(403);
         res.end('Forbidden');
         return;
     }
     
-    // Get file extension and MIME type
     const ext = path.extname(filePath).toLowerCase();
     const mimeType = MIME_TYPES[ext] || 'application/octet-stream';
     
-    // Read and serve the file
     fs.readFile(filePath, (err, data) => {
         if (err) {
             if (err.code === 'ENOENT') {
@@ -75,12 +69,14 @@ server.listen(PORT, () => {
 ║   http://localhost:${PORT}                                   ║
 ║                                                           ║
 ║   Controls:                                               ║
-║   • Press 1-9 to activate buzzers (based on judges)       ║
+║   • Press 1, 2, 3, 4 to activate buzzers                 ║
 ║   • Press SPACE to advance to next contestant             ║
 ║   • Press T to cycle through themes                       ║
 ║   • Click 'Connect' for Microbit serial input             ║
 ║                                                           ║
-║   Themes: Stage Dark | Pure Black | Neon | Warm Spotlight ║
+║   Themes: Stage Dark, Pure Black, Classic Light,          ║
+║           Warm Cream, Cool Slate, Soft Lavender,          ║
+║           Mint Fresh                                      ║
 ║                                                           ║
 ║   Press Ctrl+C to stop the server                         ║
 ║                                                           ║

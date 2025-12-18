@@ -8,10 +8,8 @@
     <!-- Prevent flash of wrong theme -->
     <script>
         (function() {
-            const saved = localStorage.getItem('theme');
-            if (saved) {
-                document.documentElement.setAttribute('data-theme', saved);
-            }
+            const saved = localStorage.getItem('theme') || 'stage-dark';
+            document.documentElement.setAttribute('data-theme', saved);
         })();
     </script>
     
@@ -20,398 +18,196 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'lora': ['Lora', 'serif'],
+                    },
+                    animation: {
+                        'buzzer-press': 'buzzerPress 0.4s ease-out',
+                        'buzzer-glow': 'buzzerGlow 1.5s ease-in-out infinite',
+                        'nameplate-glow': 'nameplateGlow 1s ease-out',
+                        'times-up': 'timesUp 0.5s ease-out',
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        buzzerPress: {
+                            '0%': { transform: 'scale(1)' },
+                            '20%': { transform: 'scale(1.15)' },
+                            '40%': { transform: 'scale(1.1)', filter: 'brightness(1.5)' },
+                            '100%': { transform: 'scale(1)', filter: 'brightness(1)' },
+                        },
+                        buzzerGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.8))' },
+                            '50%': { filter: 'drop-shadow(0 0 40px rgba(239, 68, 68, 1))' },
+                        },
+                        nameplateGlow: {
+                            '0%': { boxShadow: '0 0 0px rgba(249, 115, 22, 0)' },
+                            '50%': { boxShadow: '0 0 30px rgba(249, 115, 22, 1)' },
+                            '100%': { boxShadow: '0 0 15px rgba(249, 115, 22, 0.5)' },
+                        },
+                        timesUp: {
+                            '0%': { opacity: '0', transform: 'scale(0.8)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    
     <style>
-        /* ==================== Theme Definitions ==================== */
-        :root {
-            --transition-speed: 0.3s;
+        * {
+            font-family: 'Lora', serif;
         }
         
-        /* Theme 1: Stage Dark - Classic talent show (deep blue/black with gold) */
-        [data-theme="stage-dark"] {
-            --bg-primary: #0a0e1a;
-            --bg-secondary: #141b2d;
-            --bg-gradient: linear-gradient(180deg, #0a0e1a 0%, #1a2744 50%, #0a0e1a 100%);
-            --spotlight: radial-gradient(ellipse at center top, rgba(251, 191, 36, 0.15) 0%, transparent 50%);
+        /* ==================== Theme CSS Custom Properties ==================== */
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-mid: #1e293b;
+            --bg-gradient-end: #0f172a;
             --text-primary: #ffffff;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
-            --buzzer-inactive: #4a5568;
+            --buzzer-inactive: #4b5563;
             --buzzer-active: #dc2626;
-            --buzzer-glow: rgba(239, 68, 68, 0.8);
             --nameplate-bg: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
-            --nameplate-glow: rgba(249, 115, 22, 1);
+            --nameplate-text: #ffffff;
             --header-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-            --btn-bg: #1e293b;
-            --btn-hover: #334155;
-            --kbd-bg: #1e293b;
-            --times-up-bg: rgba(185, 28, 28, 0.95);
-            --theme-icon: "🌙";
-            --theme-name: "Stage Dark";
+            --control-bg: #374151;
+            --control-hover: #4b5563;
+            --kbd-bg: #374151;
+            --spotlight-color: rgba(251, 191, 36, 0.1);
+            --overlay-bg: rgba(185, 28, 28, 0.9);
         }
         
-        /* Theme 2: Pure Black - Maximum contrast OLED style */
+        /* Stage Dark - Default dark theme for projection */
+        [data-theme="stage-dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-gradient-start: #0f172a;
+            --bg-gradient-mid: #1e293b;
+            --bg-gradient-end: #0f172a;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --buzzer-inactive: #4b5563;
+            --spotlight-color: rgba(251, 191, 36, 0.1);
+        }
+        
+        /* Pure Black - Maximum contrast for projection */
         [data-theme="pure-black"] {
             --bg-primary: #000000;
             --bg-secondary: #0a0a0a;
-            --bg-gradient: linear-gradient(180deg, #000000 0%, #0a0a0a 50%, #000000 100%);
-            --spotlight: radial-gradient(ellipse at center top, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            --bg-gradient-start: #000000;
+            --bg-gradient-mid: #0a0a0a;
+            --bg-gradient-end: #000000;
             --text-primary: #ffffff;
-            --text-secondary: #e5e5e5;
-            --text-muted: #a3a3a3;
-            --buzzer-inactive: #525252;
-            --buzzer-active: #ff0000;
-            --buzzer-glow: rgba(255, 0, 0, 1);
-            --nameplate-bg: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
-            --nameplate-glow: rgba(220, 38, 38, 1);
-            --header-gradient: linear-gradient(135deg, #ffffff 0%, #e5e5e5 50%, #d4d4d4 100%);
-            --btn-bg: #171717;
-            --btn-hover: #262626;
-            --kbd-bg: #171717;
-            --times-up-bg: rgba(220, 38, 38, 0.98);
-            --theme-icon: "⚫";
-            --theme-name: "Pure Black";
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --buzzer-inactive: #333333;
+            --control-bg: #1a1a1a;
+            --control-hover: #2a2a2a;
+            --kbd-bg: #1a1a1a;
+            --spotlight-color: rgba(251, 191, 36, 0.05);
         }
         
-        /* Theme 3: Neon - Electric cyan/magenta cyberpunk */
-        [data-theme="neon"] {
-            --bg-primary: #0f0a19;
-            --bg-secondary: #1a1025;
-            --bg-gradient: linear-gradient(180deg, #0f0a19 0%, #1a1025 50%, #0f0a19 100%);
-            --spotlight: radial-gradient(ellipse at center top, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
-            --text-primary: #00ffff;
-            --text-secondary: #ff00ff;
-            --text-muted: #8b5cf6;
-            --buzzer-inactive: #4c1d95;
-            --buzzer-active: #ff00ff;
-            --buzzer-glow: rgba(255, 0, 255, 1);
-            --nameplate-bg: linear-gradient(135deg, #00ffff 0%, #0891b2 50%, #0e7490 100%);
-            --nameplate-glow: rgba(0, 255, 255, 1);
-            --header-gradient: linear-gradient(135deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
-            --btn-bg: #2e1065;
-            --btn-hover: #4c1d95;
-            --kbd-bg: #2e1065;
-            --times-up-bg: rgba(192, 38, 211, 0.95);
-            --theme-icon: "💜";
-            --theme-name: "Neon";
+        /* Classic Light - Clean white with dark text */
+        [data-theme="classic-light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-gradient-start: #f1f5f9;
+            --bg-gradient-mid: #ffffff;
+            --bg-gradient-end: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --buzzer-inactive: #cbd5e1;
+            --control-bg: #e2e8f0;
+            --control-hover: #cbd5e1;
+            --kbd-bg: #e2e8f0;
+            --spotlight-color: rgba(251, 191, 36, 0.15);
         }
         
-        /* Theme 4: Warm Spotlight - Amber/orange theatrical */
-        [data-theme="warm-spotlight"] {
-            --bg-primary: #1c1209;
-            --bg-secondary: #2a1d0e;
-            --bg-gradient: linear-gradient(180deg, #1c1209 0%, #2a1d0e 50%, #1c1209 100%);
-            --spotlight: radial-gradient(ellipse at center top, rgba(251, 191, 36, 0.2) 0%, transparent 50%);
-            --text-primary: #fef3c7;
-            --text-secondary: #fcd34d;
-            --text-muted: #d97706;
-            --buzzer-inactive: #78350f;
-            --buzzer-active: #ef4444;
-            --buzzer-glow: rgba(239, 68, 68, 1);
-            --nameplate-bg: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-            --nameplate-glow: rgba(251, 191, 36, 1);
-            --header-gradient: linear-gradient(135deg, #fef3c7 0%, #fcd34d 50%, #fbbf24 100%);
-            --btn-bg: #451a03;
-            --btn-hover: #78350f;
-            --kbd-bg: #451a03;
-            --times-up-bg: rgba(194, 65, 12, 0.95);
-            --theme-icon: "🔥";
-            --theme-name: "Warm Spotlight";
+        /* Warm Cream - Soft warm tones */
+        [data-theme="warm-cream"] {
+            --bg-primary: #fef7ed;
+            --bg-secondary: #fff7ed;
+            --bg-gradient-start: #fef3c7;
+            --bg-gradient-mid: #fffbeb;
+            --bg-gradient-end: #fef3c7;
+            --text-primary: #78350f;
+            --text-secondary: #92400e;
+            --text-muted: #b45309;
+            --buzzer-inactive: #d6d3d1;
+            --nameplate-bg: linear-gradient(135deg, #ea580c 0%, #c2410c 50%, #9a3412 100%);
+            --control-bg: #fed7aa;
+            --control-hover: #fdba74;
+            --kbd-bg: #fed7aa;
+            --spotlight-color: rgba(234, 88, 12, 0.1);
         }
         
-        /* ==================== Base Styles ==================== */
-        * {
-            font-family: 'Lora', serif;
-            box-sizing: border-box;
+        /* Cool Slate - Light blue-gray */
+        [data-theme="cool-slate"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #e2e8f0;
+            --bg-gradient-start: #e0f2fe;
+            --bg-gradient-mid: #f1f5f9;
+            --bg-gradient-end: #e0f2fe;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --buzzer-inactive: #94a3b8;
+            --nameplate-bg: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
+            --control-bg: #cbd5e1;
+            --control-hover: #94a3b8;
+            --kbd-bg: #cbd5e1;
+            --spotlight-color: rgba(14, 165, 233, 0.1);
         }
         
-        body {
-            margin: 0;
-            min-height: 100vh;
-            overflow: hidden;
-            background: var(--bg-gradient);
-            color: var(--text-primary);
-            transition: background var(--transition-speed), color var(--transition-speed);
+        /* Soft Lavender - Light purple tones */
+        [data-theme="soft-lavender"] {
+            --bg-primary: #faf5ff;
+            --bg-secondary: #f3e8ff;
+            --bg-gradient-start: #ede9fe;
+            --bg-gradient-mid: #faf5ff;
+            --bg-gradient-end: #ede9fe;
+            --text-primary: #3b0764;
+            --text-secondary: #581c87;
+            --text-muted: #7c3aed;
+            --buzzer-inactive: #c4b5fd;
+            --nameplate-bg: linear-gradient(135deg, #9333ea 0%, #7c3aed 50%, #6d28d9 100%);
+            --control-bg: #ddd6fe;
+            --control-hover: #c4b5fd;
+            --kbd-bg: #ddd6fe;
+            --spotlight-color: rgba(147, 51, 234, 0.1);
         }
         
-        /* ==================== Layout ==================== */
-        .app {
-            min-height: 100vh;
-            position: relative;
+        /* Mint Fresh - Light green tones */
+        [data-theme="mint-fresh"] {
+            --bg-primary: #f0fdf4;
+            --bg-secondary: #dcfce7;
+            --bg-gradient-start: #d1fae5;
+            --bg-gradient-mid: #f0fdf4;
+            --bg-gradient-end: #d1fae5;
+            --text-primary: #14532d;
+            --text-secondary: #166534;
+            --text-muted: #22c55e;
+            --buzzer-inactive: #86efac;
+            --nameplate-bg: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%);
+            --control-bg: #bbf7d0;
+            --control-hover: #86efac;
+            --kbd-bg: #bbf7d0;
+            --spotlight-color: rgba(22, 163, 74, 0.1);
         }
         
-        .spotlight-overlay {
-            position: absolute;
-            inset: 0;
-            background: var(--spotlight);
-            pointer-events: none;
-            transition: background var(--transition-speed);
-        }
-        
-        /* ==================== Header ==================== */
-        header {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 1.5rem;
-        }
-        
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .logo-section img {
-            height: 3rem;
-            width: auto;
-        }
-        
-        .header-title {
-            font-size: 1.875rem;
-            font-weight: 700;
-            background: var(--header-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            transition: background var(--transition-speed);
-        }
-        
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            background: var(--btn-bg);
-            color: var(--text-primary);
-            border: none;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-family: inherit;
-            transition: background var(--transition-speed), transform 0.2s;
-        }
-        
-        .btn:hover {
-            background: var(--btn-hover);
-            transform: scale(1.02);
-        }
-        
-        .theme-btn {
-            min-width: 160px;
-            justify-content: center;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ef4444;
-            transition: all 0.3s;
-        }
-        
-        .status-dot.connected {
-            background: #22c55e;
-            box-shadow: 0 0 10px #22c55e;
-        }
-        
-        /* ==================== Main Content ==================== */
-        main {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            height: calc(100vh - 140px);
-        }
-        
-        .contestant-section {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        
-        .contestant-label {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            transition: color var(--transition-speed);
-        }
-        
-        .contestant-name {
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            font-weight: 700;
-            color: var(--text-primary);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.05em;
-            transition: color var(--transition-speed);
-        }
-        
-        /* ==================== Buzzers ==================== */
-        .buzzers-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: clamp(1rem, 3vw, 2rem);
-            width: 90%;
-            max-width: 1200px;
-        }
-        
-        .buzzer-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 250px;
-        }
-        
-        .buzzer-container {
-            cursor: pointer;
-            width: 100%;
-        }
-        
-        .buzzer-x {
-            width: 100%;
-            height: auto;
-            color: var(--buzzer-inactive);
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-            transition: color var(--transition-speed), transform 0.2s, filter 0.2s;
-        }
-        
-        .buzzer-x:hover:not(.active) {
-            transform: scale(1.05);
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
-        }
-        
-        .buzzer-x.active {
-            color: var(--buzzer-active);
-            animation: buzzerPress 0.4s ease-out, buzzerGlow 1.5s ease-in-out 0.4s infinite;
-        }
-        
-        @keyframes buzzerPress {
-            0% { transform: scale(1); }
-            20% { transform: scale(1.15); }
-            40% { transform: scale(1.1); filter: brightness(1.5); }
-            100% { transform: scale(1); filter: brightness(1); }
-        }
-        
-        @keyframes buzzerGlow {
-            0%, 100% { filter: drop-shadow(0 0 20px var(--buzzer-glow)); }
-            50% { filter: drop-shadow(0 0 40px var(--buzzer-glow)); }
-        }
-        
-        /* ==================== Nameplates ==================== */
-        .nameplate {
-            margin-top: 1rem;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.25rem;
-            background: var(--nameplate-bg);
-            transform: perspective(500px) rotateX(5deg) skewX(-2deg);
-            box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.3),
-                0 2px 4px -1px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transition: background var(--transition-speed);
-        }
-        
-        .nameplate span {
-            color: white;
-            font-weight: 600;
-            font-size: clamp(1rem, 2vw, 1.25rem);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .nameplate.nameplate-glow {
-            animation: nameplateGlow 1s ease-out forwards;
-        }
-        
-        @keyframes nameplateGlow {
-            0% { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 0px var(--nameplate-glow); }
-            50% { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 30px var(--nameplate-glow); }
-            100% { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 15px var(--nameplate-glow); }
-        }
-        
-        /* ==================== Footer ==================== */
-        footer {
-            position: absolute;
-            bottom: 1rem;
-            left: 0;
-            right: 0;
-            z-index: 10;
-        }
-        
-        .instructions {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            opacity: 0.7;
-            transition: color var(--transition-speed);
-        }
-        
-        kbd {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            background: var(--kbd-bg);
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            font-family: inherit;
-            transition: background var(--transition-speed);
-        }
-        
-        /* ==================== Time's Up Overlay ==================== */
-        .times-up-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: var(--times-up-bg);
-            backdrop-filter: blur(8px);
-            transition: background var(--transition-speed);
-        }
-        
-        .times-up-overlay.visible {
-            display: flex;
-            animation: timesUp 0.5s ease-out;
-        }
-        
-        .times-up-overlay h1 {
-            font-size: clamp(3rem, 10vw, 6rem);
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        .times-up-overlay p {
-            margin-top: 1rem;
-            font-size: 1.25rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        @keyframes timesUp {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        /* ==================== Scrollbar ==================== */
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -422,62 +218,193 @@
             background: var(--text-muted);
             border-radius: 4px;
         }
+        
+        /* Background stage */
+        .bg-stage {
+            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
+        }
+        
+        /* Nameplate skew effect */
+        .nameplate {
+            transform: perspective(500px) rotateX(5deg) skewX(-2deg);
+            background: var(--nameplate-bg);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .nameplate-text {
+            color: var(--nameplate-text);
+        }
+        
+        .nameplate-glow {
+            animation: nameplateGlow 1s ease-out forwards;
+        }
+        
+        /* X icon styling */
+        .buzzer-x {
+            color: var(--buzzer-inactive);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            transition: all 0.2s ease;
+        }
+        
+        .buzzer-x.active {
+            color: var(--buzzer-active) !important;
+            animation: buzzerPress 0.4s ease-out, buzzerGlow 1.5s ease-in-out 0.4s infinite;
+        }
+        
+        .buzzer-x:not(.active):hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+        }
+        
+        /* Times Up overlay */
+        .times-up-overlay {
+            background: var(--overlay-bg);
+            backdrop-filter: blur(8px);
+        }
+        
+        /* Spotlight effect */
+        .spotlight {
+            background: radial-gradient(ellipse at center top, var(--spotlight-color) 0%, transparent 50%);
+        }
+        
+        /* Theme toggle button */
+        .theme-toggle {
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .theme-toggle:hover {
+            transform: rotate(15deg) scale(1.1);
+        }
+        
+        /* Connection status indicator */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .status-dot.connected {
+            background-color: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+        }
+        .status-dot.disconnected {
+            background-color: #ef4444;
+        }
+        
+        /* Contestant name styling */
+        .contestant-name {
+            color: var(--text-primary);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.05em;
+        }
+        
+        /* Header styling */
+        .header-title {
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Text colors from CSS variables */
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-muted { color: var(--text-muted); }
+        
+        /* Control backgrounds */
+        .bg-control { background-color: var(--control-bg); }
+        .bg-control:hover { background-color: var(--control-hover); }
+        .bg-kbd { background-color: var(--kbd-bg); }
+        
+        /* Instructions panel */
+        .instructions {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        /* Theme indicator */
+        .theme-indicator {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            padding: 8px 16px;
+            background: var(--control-bg);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .theme-indicator.show {
+            opacity: 1;
+        }
     </style>
 </head>
-<body>
-    <div class="app">
+<body class="min-h-screen overflow-hidden">
+    <div id="app" class="min-h-screen bg-stage relative">
         <!-- Spotlight effect overlay -->
-        <div class="spotlight-overlay"></div>
+        <div class="spotlight absolute inset-0 pointer-events-none"></div>
         
         <!-- Header -->
-        <header>
+        <header class="relative z-10 flex items-center justify-between px-6 py-4">
             <!-- Logo and Title -->
-            <div class="logo-section">
-                <img src="/public/smecrest.png" alt="School Crest">
-                <h1 class="header-title">SME's Got Talent</h1>
+            <div class="flex items-center gap-3">
+                <!-- School Logo -->
+                <img src="/public/smecrest.png" alt="School Crest" class="h-12 w-auto">
+                <h1 class="text-3xl font-bold header-title">SME's Got Talent</h1>
             </div>
             
             <!-- Controls -->
-            <div class="controls">
+            <div class="flex items-center gap-4">
                 <!-- Microbit Connection -->
-                <button id="connectBtn" class="btn">
-                    <span class="status-dot" id="statusDot"></span>
+                <button id="connectBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-control text-theme-primary transition-colors text-sm">
+                    <span class="status-dot disconnected" id="statusDot"></span>
                     <span id="connectText">Connect</span>
                 </button>
                 
                 <!-- Theme Toggle -->
-                <button id="themeToggle" class="btn theme-btn">
-                    <span id="themeIcon">🌙</span>
-                    <span id="themeName">Stage Dark</span>
+                <button id="themeToggle" class="theme-toggle p-2 rounded-full bg-control text-theme-primary" title="Press T to cycle themes">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                    </svg>
                 </button>
             </div>
         </header>
         
         <!-- Main Content -->
-        <main>
+        <main class="relative z-10 flex flex-col items-center justify-center px-4" style="height: calc(100vh - 140px);">
             <!-- Contestant Name -->
-            <div class="contestant-section">
-                <p class="contestant-label">Now Performing</p>
-                <h2 id="contestantName" class="contestant-name">Loading...</h2>
+            <div class="mb-8 text-center">
+                <p class="text-sm uppercase tracking-widest text-theme-muted mb-2">Now Performing</p>
+                <h2 id="contestantName" class="contestant-name text-4xl md:text-5xl font-bold">
+                    Loading...
+                </h2>
             </div>
             
-            <!-- Buzzers Container - will be dynamically generated -->
-            <div id="buzzersContainer" class="buzzers-container">
-                <!-- Buzzers will be inserted here by JavaScript -->
+            <!-- Buzzers Container - Dynamically populated -->
+            <div id="buzzersContainer" class="flex justify-center items-end gap-4 md:gap-8 w-[90%] max-w-6xl">
+                <!-- Buzzers will be generated dynamically based on judges.csv -->
             </div>
         </main>
         
         <!-- Instructions Footer -->
-        <footer>
-            <div class="instructions">
-                <p id="instructionsText">Press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> for buzzers • <kbd>Space</kbd> for next contestant • <kbd>T</kbd> to change theme</p>
+        <footer class="absolute bottom-4 left-0 right-0 z-10">
+            <div class="instructions text-center text-theme-muted">
+                <p id="instructionsText">Press <kbd class="px-2 py-1 bg-kbd rounded text-xs">1</kbd>-<kbd class="px-2 py-1 bg-kbd rounded text-xs">4</kbd> for buzzers • <kbd class="px-2 py-1 bg-kbd rounded text-xs">Space</kbd> next contestant • <kbd class="px-2 py-1 bg-kbd rounded text-xs">T</kbd> change theme</p>
             </div>
         </footer>
         
+        <!-- Theme Indicator -->
+        <div id="themeIndicator" class="theme-indicator"></div>
+        
         <!-- Time's Up Overlay -->
-        <div id="timesUpOverlay" class="times-up-overlay">
-            <h1>TIME'S UP!</h1>
-            <p>Press SPACE for next contestant</p>
+        <div id="timesUpOverlay" class="times-up-overlay fixed inset-0 z-50 hidden flex-col items-center justify-center">
+            <h1 class="text-6xl md:text-8xl font-bold text-white animate-pulse-slow" style="text-shadow: 0 0 40px rgba(255,255,255,0.5);">
+                TIME'S UP!
+            </h1>
+            <p class="mt-4 text-xl text-white/80">Press SPACE for next contestant</p>
         </div>
     </div>
     
@@ -485,23 +412,63 @@
         // ==================== State ====================
         let contestants = [];
         let judges = [];
+        let judgeCount = 0;
         let currentContestantIndex = 0;
         let buzzerStates = [];
         let serialPort = null;
         let reader = null;
         let isConnected = false;
         
-        // Theme configuration
-        const themes = ['stage-dark', 'pure-black', 'neon', 'warm-spotlight'];
-        const themeNames = {
-            'stage-dark': { icon: '🌙', name: 'Stage Dark' },
-            'pure-black': { icon: '⚫', name: 'Pure Black' },
-            'neon': { icon: '💜', name: 'Neon' },
-            'warm-spotlight': { icon: '🔥', name: 'Warm Spotlight' }
-        };
+        // ==================== Theme Configuration ====================
+        const themes = [
+            { id: 'stage-dark', name: 'Stage Dark' },
+            { id: 'pure-black', name: 'Pure Black' },
+            { id: 'classic-light', name: 'Classic Light' },
+            { id: 'warm-cream', name: 'Warm Cream' },
+            { id: 'cool-slate', name: 'Cool Slate' },
+            { id: 'soft-lavender', name: 'Soft Lavender' },
+            { id: 'mint-fresh', name: 'Mint Fresh' }
+        ];
         let currentThemeIndex = 0;
         
-        // ==================== Audio Context ====================
+        // ==================== Dynamic Buzzer Rendering ====================
+        function renderBuzzers() {
+            const container = document.getElementById('buzzersContainer');
+            container.innerHTML = '';
+            
+            judges.forEach((judgeName, index) => {
+                const buzzerDiv = document.createElement('div');
+                buzzerDiv.className = 'flex-1 flex flex-col items-center';
+                buzzerDiv.innerHTML = `
+                    <div class="buzzer-container cursor-pointer" data-buzzer="${index}">
+                        <svg class="buzzer-x w-full h-auto" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </div>
+                    <div class="nameplate mt-4 px-6 py-2 rounded" data-nameplate="${index}">
+                        <span class="nameplate-text font-semibold text-lg md:text-xl">${judgeName}</span>
+                    </div>
+                `;
+                
+                // Add click handler
+                buzzerDiv.querySelector('.buzzer-container').addEventListener('click', () => {
+                    activateBuzzer(index);
+                });
+                
+                container.appendChild(buzzerDiv);
+            });
+            
+            // Update instructions
+            updateInstructions();
+        }
+        
+        function updateInstructions() {
+            const instructionsEl = document.getElementById('instructionsText');
+            const maxKey = Math.min(judgeCount, 9);
+            instructionsEl.innerHTML = `Press <kbd class="px-2 py-1 bg-kbd rounded text-xs">1</kbd>-<kbd class="px-2 py-1 bg-kbd rounded text-xs">${maxKey}</kbd> for buzzers • <kbd class="px-2 py-1 bg-kbd rounded text-xs">Space</kbd> next contestant • <kbd class="px-2 py-1 bg-kbd rounded text-xs">T</kbd> change theme`;
+        }
+        
+        // ==================== Audio Context for Better Sound ====================
         let audioContext = null;
         
         function initAudioContext() {
@@ -558,28 +525,34 @@
         
         // ==================== Theme Management ====================
         function initTheme() {
-            const saved = localStorage.getItem('theme');
-            if (saved && themes.includes(saved)) {
-                currentThemeIndex = themes.indexOf(saved);
-            }
-            applyTheme();
+            const saved = localStorage.getItem('theme') || 'stage-dark';
+            currentThemeIndex = themes.findIndex(t => t.id === saved);
+            if (currentThemeIndex === -1) currentThemeIndex = 0;
+            applyTheme(themes[currentThemeIndex].id, false);
             
-            document.getElementById('themeToggle').addEventListener('click', cycleTheme);
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle.addEventListener('click', cycleTheme);
         }
         
         function cycleTheme() {
             currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-            applyTheme();
-            localStorage.setItem('theme', themes[currentThemeIndex]);
+            applyTheme(themes[currentThemeIndex].id, true);
         }
         
-        function applyTheme() {
-            const theme = themes[currentThemeIndex];
-            document.documentElement.setAttribute('data-theme', theme);
+        function applyTheme(themeId, showIndicator = true) {
+            document.documentElement.setAttribute('data-theme', themeId);
+            localStorage.setItem('theme', themeId);
             
-            const themeInfo = themeNames[theme];
-            document.getElementById('themeIcon').textContent = themeInfo.icon;
-            document.getElementById('themeName').textContent = themeInfo.name;
+            if (showIndicator) {
+                const indicator = document.getElementById('themeIndicator');
+                const themeName = themes.find(t => t.id === themeId)?.name || themeId;
+                indicator.textContent = themeName;
+                indicator.classList.add('show');
+                
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 1500);
+            }
         }
         
         // ==================== CSV Loading ====================
@@ -611,46 +584,20 @@
             const data = await loadCSV('judges.csv');
             if (data && data.length > 0) {
                 const judgeData = data[0].toLowerCase().includes('name') ? data.slice(1) : data;
-                judges = judgeData.slice(0, 9); // Max 9 judges
+                // Support 2-9 judges
+                judges = judgeData.slice(0, 9).filter(j => j.trim().length > 0);
             }
             
+            // Fallback to 4 judges if none loaded
             if (judges.length === 0) {
                 judges = ['Judge 1', 'Judge 2', 'Judge 3', 'Judge 4'];
             }
             
-            // Initialize buzzer states based on number of judges
-            buzzerStates = new Array(judges.length).fill(false);
+            judgeCount = judges.length;
+            buzzerStates = new Array(judgeCount).fill(false);
             
-            // Generate the buzzer UI
-            generateBuzzerUI();
-            updateInstructions();
-        }
-        
-        function generateBuzzerUI() {
-            const container = document.getElementById('buzzersContainer');
-            container.innerHTML = '';
-            
-            judges.forEach((judge, index) => {
-                const column = document.createElement('div');
-                column.className = 'buzzer-column';
-                column.innerHTML = `
-                    <div class="buzzer-container" data-buzzer="${index}" onclick="activateBuzzer(${index})">
-                        <svg class="buzzer-x" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </svg>
-                    </div>
-                    <div class="nameplate" data-nameplate="${index}">
-                        <span id="judge${index}">${judge}</span>
-                    </div>
-                `;
-                container.appendChild(column);
-            });
-        }
-        
-        function updateInstructions() {
-            const keys = judges.map((_, i) => `<kbd>${i + 1}</kbd>`).join(' ');
-            document.getElementById('instructionsText').innerHTML = 
-                `Press ${keys} for buzzers • <kbd>Space</kbd> for next contestant • <kbd>T</kbd> to change theme`;
+            // Render the buzzers dynamically
+            renderBuzzers();
         }
         
         function updateContestantDisplay() {
@@ -664,7 +611,8 @@
         
         // ==================== Buzzer Logic ====================
         function activateBuzzer(index) {
-            if (index >= judges.length || buzzerStates[index]) return;
+            if (index < 0 || index >= judgeCount) return;
+            if (buzzerStates[index]) return;
             
             buzzerStates[index] = true;
             
@@ -683,7 +631,7 @@
         }
         
         function resetBuzzers() {
-            buzzerStates = new Array(judges.length).fill(false);
+            buzzerStates = new Array(judgeCount).fill(false);
             
             document.querySelectorAll('.buzzer-x').forEach(buzzer => {
                 buzzer.classList.remove('active');
@@ -694,7 +642,8 @@
             });
             
             const overlay = document.getElementById('timesUpOverlay');
-            overlay.classList.remove('visible');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
         }
         
         function checkAllBuzzersActivated() {
@@ -705,7 +654,10 @@
         
         function showTimesUp() {
             const overlay = document.getElementById('timesUpOverlay');
-            overlay.classList.add('visible');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            overlay.style.animation = 'timesUp 0.5s ease-out';
+            
             playAirHornSound();
         }
         
@@ -724,18 +676,16 @@
                 // Buzzer keys 1-9
                 if (e.key >= '1' && e.key <= '9') {
                     const index = parseInt(e.key) - 1;
-                    if (index < judges.length) {
+                    if (index < judgeCount) {
                         activateBuzzer(index);
                     }
                 }
                 
-                // Space for next contestant
                 if (e.key === ' ' || e.code === 'Space') {
                     e.preventDefault();
                     nextContestant();
                 }
                 
-                // T for theme toggle
                 if (e.key === 't' || e.key === 'T') {
                     cycleTheme();
                 }
@@ -765,17 +715,13 @@
         }
         
         async function disconnectMicrobit() {
-            try {
-                if (reader) {
-                    await reader.cancel();
-                    reader = null;
-                }
-                if (serialPort) {
-                    await serialPort.close();
-                    serialPort = null;
-                }
-            } catch (error) {
-                console.error('Disconnect error:', error);
+            if (reader) {
+                await reader.cancel();
+                reader = null;
+            }
+            if (serialPort) {
+                await serialPort.close();
+                serialPort = null;
             }
             isConnected = false;
             updateConnectionStatus();
@@ -802,16 +748,14 @@
                         const trimmed = line.trim();
                         if (trimmed.startsWith('BUZZER:')) {
                             const buzzerNum = parseInt(trimmed.split(':')[1]);
-                            if (buzzerNum >= 1 && buzzerNum <= judges.length) {
+                            if (buzzerNum >= 1 && buzzerNum <= judgeCount) {
                                 activateBuzzer(buzzerNum - 1);
                             }
                         }
                     }
                 }
             } catch (error) {
-                if (error.name !== 'TypeError') {
-                    console.error('Serial read error:', error);
-                }
+                console.error('Serial read error:', error);
             }
         }
         
@@ -820,16 +764,19 @@
             const connectText = document.getElementById('connectText');
             
             if (isConnected) {
+                statusDot.classList.remove('disconnected');
                 statusDot.classList.add('connected');
                 connectText.textContent = 'Disconnect';
             } else {
                 statusDot.classList.remove('connected');
+                statusDot.classList.add('disconnected');
                 connectText.textContent = 'Connect';
             }
         }
         
         function initSerialConnection() {
-            document.getElementById('connectBtn').addEventListener('click', () => {
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.addEventListener('click', () => {
                 if (isConnected) {
                     disconnectMicrobit();
                 } else {

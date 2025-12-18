@@ -1,7 +1,7 @@
 {
   "name": "smes-got-talent",
-  "version": "1.1.0",
-  "description": "A Britain's Got Talent style judges' feedback screen with dynamic judge support",
+  "version": "1.0.0",
+  "description": "A Britain's Got Talent style judges' feedback screen with multiple themes",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -10,8 +10,7 @@
     "talent-show",
     "buzzer",
     "judges",
-    "feedback",
-    "dynamic"
+    "feedback"
   ],
   "author": "",
   "license": "MIT"
